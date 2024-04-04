@@ -20,7 +20,7 @@ const logout = () => {
   display: flex
   padding: 10px
   gap: 10px
-  // background: var(--color-background-200)
+  background: var(--color-background-200)
   // outline: 1px solid var(--color-border)
   width: 300px
   img
