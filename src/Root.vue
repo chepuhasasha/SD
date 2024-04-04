@@ -3,9 +3,6 @@
   .root_head(v-if='userStore.user')
     c_user
     w_button(@click='view = "generate"' :mode='view === "generate" ? "solid" : "ghost"' rounded) Generate
-    //- w_button(@click='view = "upscale"' :mode='view === "upscale" ? "solid" : "ghost"' rounded) Upscale
-    //- w_button(icon='plus' size="s" mode='ghost' @click='downloadPresets') Add presets
-    //- w_button(icon='down' size="s" mode='ghost' @click='downloadPresets') Download my presets
   .root_content(v-if='userStore.user')
     v_generate(v-show='view === "generate"')
 
@@ -21,27 +18,6 @@ import { useCommonStore, useUserStore } from './stores'
 const userStore = useUserStore()
 const commonStore = useCommonStore()
 const view = ref('generate')
-
-
-const downloadPresets = () => {
-  const jsonData: Record<string, any> = {}
-  const generate_presets = localStorage.getItem('generate_presets')
-  if (generate_presets) {
-    jsonData.generate_presets = JSON.parse(generate_presets)
-  }
-
-  const jsonString = JSON.stringify(jsonData)
-  const blob = new Blob([jsonString], { type: 'application/json' })
-  const downloadLink = document.createElement('a')
-  downloadLink.href = window.URL.createObjectURL(blob)
-  downloadLink.download = 'presets.json'
-  document.body.appendChild(downloadLink)
-  downloadLink.click()
-  document.body.removeChild(downloadLink)
-}
-const addPresets = () => {
-
-}
 </script>
 <style lang="sass">
 .root

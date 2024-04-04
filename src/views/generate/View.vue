@@ -7,6 +7,9 @@
       v-model='preset'
       :format='(v) => v? v.name: ""'
       :options='presets.map(value => ({label: value.name, value}))')
+      w_button(
+        icon='down' size="s" fill
+        @click='downloadPresets') Download presets
       template(v-slot:area)
         w_button(
           @click='applyPreset' 
@@ -187,7 +190,7 @@ const isUpdatedPreset = computed(() => {
   const find = presets.value.find((v) => v.name === body.name)
   if (find) {
     return Object.keys(find).reduce((acc, key) => {
-      if(find[key] != body[key]) {
+      if (find[key] != body[key]) {
         return true
       }
       return acc
@@ -195,6 +198,20 @@ const isUpdatedPreset = computed(() => {
   }
   return false
 })
+
+const downloadPresets = () => {
+  const jsonData: Record<string, any> = {}
+  const generate_presets = localStorage.getItem('generate_presets')
+  if (generate_presets) {
+    const blob = new Blob([generate_presets], { type: 'application/json' })
+    const downloadLink = document.createElement('a')
+    downloadLink.href = window.URL.createObjectURL(blob)
+    downloadLink.download = 'generate_presets.json'
+    document.body.appendChild(downloadLink)
+    downloadLink.click()
+    document.body.removeChild(downloadLink)
+  }
+}
 
 onMounted(() => {
   const str = localStorage.getItem('generate_presets')
