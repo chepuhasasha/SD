@@ -6,7 +6,7 @@
     .w_select_area_value {{ isMulty ? modelValue.map(v => format(v)).join(', ') || placeholder : format(modelValue) || placeholder }}
     .w_select_area_count(v-if='isMulty && modelValue.length > 0') {{ modelValue.length }}
     w_icon(v-if='options && options.length > 0' :name='isOpen ? "up" : "down"')
-
+  slot(name='area')
 Teleport(to='body')
   .w_select_pop_wrap(v-if='isOpen ' @click='close')
     .w_select_pop(@click.stop :style='area' @pointerleave='close')

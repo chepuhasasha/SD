@@ -1,6 +1,7 @@
 <template lang="pug">
 .w_input(:class='classes')
   label(v-if='label') {{ label }}{{ error ? `: ${error}` : null }}
+  slot(name='body')
   .w_input_wrap
     .w_input_icon(v-if='icon')
       w_icon(:name='icon' :size='size')

@@ -1,6 +1,18 @@
 <template lang="pug">
 .generate
   .generate_props
+    w_select(
+      v-if="presets.length > 0"
+      label='preset'
+      v-model='preset'
+      :format='(v) => v? v.name: ""'
+      :options='presets.map(value => ({label: value.name, value}))')
+      template(v-slot:area)
+        w_button(
+          @click='applyPreset' 
+          v-if='preset' 
+          icon="down"
+          fill size='s') Transfer parameters from preset
     w_textarea(
       label='PROMPT' 
       rows='5' 
@@ -32,19 +44,21 @@
       :loaded='load'
       @click='generate'
       ) GENERATE
-    pre {{ body }}
+    hr
     w_input(
-      label="Save as preset"
+      label="Save or update preset"
+      v-model="body.name"
       placeholder='preset name')
-      w_button(icon='plus')
+      w_button(v-if='body.name && !presets.some(v => v.name === body.name)' icon='plus' @click='saveAsPreset') Save
+      w_button(v-if='isUpdatedPreset' icon='plus' @click='updatePreset') Update
   .generate_view(v-if='imageUrl')
-    w_button(icon='right' @click='download' mode='ghost' size='s') open in new tab
+    w_button(icon='right' @click='open' mode='ghost' size='s') open in new tab
     img(:src='imageUrl')
   w_empty(v-else message='nothing to watch yet')
 </template>
 <script lang="ts" setup>
 import { useCommonStore, useUserStore, type APIError } from '@/stores'
-import { reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import axios from 'axios'
 import FormData from 'form-data'
 
@@ -76,6 +90,7 @@ const values = {
 }
 
 const body = reactive<Record<string, any>>({
+  name: '',
   prompt: '',
   negative_prompt: null,
   seed: null,
@@ -83,7 +98,6 @@ const body = reactive<Record<string, any>>({
   style_preset: null,
   output_format: null
 })
-
 const load = ref(false)
 const imageUrl = ref<string | null>(null)
 const generate = () => {
@@ -91,7 +105,7 @@ const generate = () => {
 
   const formData = Object.keys(body).reduce(
     (acc, key) => {
-      if (body[key]) {
+      if (body[key] && key != 'name') {
         acc[key] = body[key]
       }
       return acc
@@ -129,7 +143,7 @@ const generate = () => {
       load.value = false
     })
 }
-const download = () => {
+const open = () => {
   if (imageUrl.value) {
     let link = document.createElement('a')
     link.href = imageUrl.value
@@ -140,6 +154,54 @@ const download = () => {
     document.body.removeChild(link)
   }
 }
+
+const presets = ref<Record<string, any>[]>([])
+const preset = ref<null | Record<string, any>>(null)
+const applyPreset = () => {
+  if (preset.value) {
+    Object.keys(body).forEach((key) => {
+      if (preset.value && preset.value[key]) {
+        body[key] = preset.value[key]
+      } else {
+        body[key] = null
+      }
+    })
+    preset.value = null
+  }
+}
+const saveAsPreset = () => {
+  presets.value.push(JSON.parse(JSON.stringify(body)))
+  localStorage.setItem('generate_presets', JSON.stringify(presets.value))
+}
+const updatePreset = () => {
+  presets.value = presets.value.map((p) => {
+    if (p.name === body.name) {
+      return JSON.parse(JSON.stringify(body))
+    } else {
+      return p
+    }
+  })
+  localStorage.setItem('generate_presets', JSON.stringify(presets.value))
+}
+const isUpdatedPreset = computed(() => {
+  const find = presets.value.find((v) => v.name === body.name)
+  if (find) {
+    return Object.keys(find).reduce((acc, key) => {
+      if(find[key] != body[key]) {
+        return true
+      }
+      return acc
+    }, false)
+  }
+  return false
+})
+
+onMounted(() => {
+  const str = localStorage.getItem('generate_presets')
+  if (str) {
+    presets.value = JSON.parse(str)
+  }
+})
 </script>
 <style lang="sass">
 .generate
