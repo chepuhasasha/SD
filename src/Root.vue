@@ -2,10 +2,12 @@
 .root
   .root_head(v-if='userStore.user')
     c_user
-    w_button(@click='view = "generate"' :mode='view === "generate" ? "solid" : "ghost"' rounded) Generate
+    w_button(
+      @click='view = "generate"' 
+      :mode='view === "generate" ? "solid" : "ghost"' 
+      rounded) Generate
   .root_content(v-if='userStore.user')
-    v_generate(v-show='view === "generate"')
-
+    v_generate(v-if='view === "generate"')
   .root_modal(v-if='!userStore.user')
     v_auth
   .root_modal(v-if='commonStore.error')

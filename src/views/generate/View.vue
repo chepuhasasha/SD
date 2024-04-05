@@ -54,10 +54,8 @@
       placeholder='preset name')
       w_button(v-if='body.name && !presets.some(v => v.name === body.name)' icon='plus' @click='saveAsPreset') Save
       w_button(v-if='isUpdatedPreset' icon='plus' @click='updatePreset') Update
-  .generate_view(v-if='imageUrl')
-    w_button(icon='right' @click='open' mode='ghost' size='s') open in new tab
-    img(:src='imageUrl')
-  w_empty(v-else message='nothing to watch yet')
+  .generate_view
+    c_editor
 </template>
 <script lang="ts" setup>
 import { useCommonStore, useUserStore, type APIError } from '@/stores'
@@ -102,7 +100,6 @@ const body = reactive<Record<string, any>>({
   output_format: null
 })
 const load = ref(false)
-const imageUrl = ref<string | null>(null)
 const generate = () => {
   load.value = true
 
@@ -133,7 +130,14 @@ const generate = () => {
       const blob = new Blob([res.data], {
         type: res.headers['content-type'] as string
       })
-      imageUrl.value = URL.createObjectURL(blob)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        if (typeof e.target?.result === 'string') {
+          const base64 = e.target.result
+          commonStore.image = base64
+        }
+      }
+      reader.readAsDataURL(blob)
     })
     .catch((err) => {
       const error = err.response
@@ -146,18 +150,6 @@ const generate = () => {
       load.value = false
     })
 }
-const open = () => {
-  if (imageUrl.value) {
-    let link = document.createElement('a')
-    link.href = imageUrl.value
-    link.target = '_blank'
-    // link.download = `generated.${imageType.value.split('/')[1]}`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-}
-
 const presets = ref<Record<string, any>[]>([])
 const preset = ref<null | Record<string, any>>(null)
 const applyPreset = () => {
@@ -227,7 +219,6 @@ onMounted(() => {
   grid-template-rows: 1fr
   width: 100%
   height: 100%
-  gap: 20px
 
   &_props
     display: flex
@@ -257,8 +248,4 @@ onMounted(() => {
     img
       max-width: 100%
       max-height: 100%
-    .w_button
-      position: absolute
-      top: 0
-      left: 0
 </style>
